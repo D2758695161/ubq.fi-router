@@ -1,6 +1,6 @@
 /**
- * UBQ.FI Router - Cloudflare Worker
- * Deterministic routing to Deno Deploy apps; /rpc is same-origin proxy.
+ * UBQ.FI Router — Cloudflare Worker
+ * Deterministic routing to Deno Deploy apps; /rpc is same‑origin proxy.
  * No KV, no discovery, no sticky cookies, no Pages fallback.
  */
 
@@ -229,10 +229,12 @@ async function proxy(request: Request, targetUrl: string, env: Env, timeoutMs = 
     try {
       const text = await res.text()
       if (text.includes('</body>')) {
-        const sha = env.GITHUB_SHA ? `<a href="${env.GITHUB_REPO_URL || '#'}/commit/${env.GITHUB_SHA}" target="_blank" style="color:#9ca3af;font-size:11px;text-decoration:none;margin-left:8px;">${env.GITHUB_SHA}</a>` : ''
+        const sha = env.GITHUB_SHA && env.GITHUB_REPO_URL ? `<a href="${env.GITHUB_REPO_URL}/commit/${env.GITHUB_SHA}" target="_blank" style="color:#9ca3af;font-size:11px;text-decoration:none;margin-left:8px;">${env.GITHUB_SHA}</a>` : ''
         const repo = env.GITHUB_REPO_URL ? `<a href="${env.GITHUB_REPO_URL}" target="_blank" style="color:#9ca3af;font-size:11px;text-decoration:none;">repo</a>` : ''
         const footer = `<div style="position:fixed;bottom:0;left:0;right:0;background:#111827;padding:4px 12px;font-family:monospace;font-size:12px;color:#9ca3af;display:flex;align-items:center;gap:6px;border-top:1px solid #374151;z-index:9999;">${repo}${sha}</div>`
         const modified = text.replace('</body>', footer + '</body>')
+        // Remove Content-Length since body was modified
+        outHeaders.delete('content-length')
         return new Response(modified, { status: res.status, statusText: res.statusText, headers: outHeaders })
       }
     } catch {}
